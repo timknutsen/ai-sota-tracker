@@ -1,0 +1,8 @@
+.env
+*.db
+report.md
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.tar
