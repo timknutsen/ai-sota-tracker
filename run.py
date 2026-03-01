@@ -9,6 +9,8 @@ Usage:
     python run.py --report 14  # Report for last 14 days
 """
 import sys
+from dotenv import load_dotenv
+load_dotenv()
 from db import init_db, get_db, insert_insights
 from ingest import ingest_all
 from extract import extract_insights

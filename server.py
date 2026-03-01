@@ -10,7 +10,9 @@ Usage:
     # Safari → Share → Add to Home Screen
 """
 import os
-from datetime import datetime
+from datetime import datetime, timezone
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from db import init_db, get_db, get_recent_insights
@@ -90,7 +92,7 @@ def build_html(days: int = 7) -> str:
             {cards}
         </section>"""
 
-    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     empty_msg = '<p class="empty">No insights found. Run the pipeline first: <code>python run.py</code></p>' if not insights else ""
 
     return f"""<!DOCTYPE html>

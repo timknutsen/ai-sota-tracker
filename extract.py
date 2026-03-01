@@ -36,18 +36,14 @@ JSON array:"""
 
 
 def extract_insights_gemini(text: str) -> list[dict]:
-    import google.generativeai as genai
-    
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise ValueError("Set GEMINI_API_KEY environment variable")
-    
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-3-flash-preview")
-    
-    response = model.generate_content(
-        EXTRACTION_PROMPT.format(text=text),
-        generation_config={"temperature": 0.1, "max_output_tokens": 4096},
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client()  # reads GEMINI_API_KEY from env
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents=EXTRACTION_PROMPT.format(text=text),
+        config=types.GenerateContentConfig(temperature=0.1, max_output_tokens=4096),
     )
     return _parse_json_response(response.text)
 

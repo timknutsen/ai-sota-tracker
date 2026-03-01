@@ -1,6 +1,7 @@
 youtube-transcript-api>=1.0.0
 feedparser>=6.0.0
-google-generativeai>=0.8.0
+google-genai>=1.0.0
 requests>=2.31.0
 fastapi>=0.115.0
 uvicorn>=0.30.0
+python-dotenv>=1.0.0
