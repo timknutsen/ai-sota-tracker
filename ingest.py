@@ -5,6 +5,7 @@ import re
 import json
 import requests
 import feedparser
+import trafilatura
 from datetime import datetime, timedelta
 from youtube_transcript_api import YouTubeTranscriptApi
 
@@ -103,6 +104,27 @@ def clean_html(text: str) -> str:
     return re.sub(r"<[^>]+>", "", text or "")
 
 
+def fetch_full_article(url: str) -> str | None:
+    """
+    Fetch the full article at `url` and return clean markdown text.
+    Uses trafilatura for boilerplate removal (nav, ads, footers).
+    Returns None if the page can't be fetched or extracted.
+    """
+    try:
+        downloaded = trafilatura.fetch_url(url)
+        if not downloaded:
+            return None
+        text = trafilatura.extract(
+            downloaded,
+            output_format="markdown",
+            include_links=False,
+            include_images=False,
+        )
+        return text or None
+    except Exception:
+        return None
+
+
 def ingest_rss() -> list[int]:
     """Ingest recent RSS feed entries. Returns list of new source IDs."""
     source_ids = []
@@ -129,17 +151,21 @@ def ingest_rss() -> list[int]:
             if not url or source_exists(url):
                 continue
             
-            # Get content — prefer full content, fall back to summary
-            raw = clean_html(
-                entry.get("content", [{}])[0].get("value", "")
-                if entry.get("content")
-                else entry.get("summary", "")
-            )
-            
+            # Try fetching the full article first; fall back to feed summary
+            raw = fetch_full_article(url)
+            if raw:
+                print(f"    (full article fetched, {len(raw)} chars)")
+            else:
+                raw = clean_html(
+                    entry.get("content", [{}])[0].get("value", "")
+                    if entry.get("content")
+                    else entry.get("summary", "")
+                )
+
             if not raw or len(raw) < 100:
                 print(f"  ⏭ Skipping (too short): {entry.get('title', '?')[:60]}")
                 continue
-            
+
             if len(raw) > MAX_TRANSCRIPT_LENGTH:
                 raw = raw[:MAX_TRANSCRIPT_LENGTH] + "\n\n[TRUNCATED]"
             
